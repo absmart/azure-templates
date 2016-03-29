@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+  },
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "apiVersion": "2015-01-01"
+  },
+  "resources": [
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "name": "VirtualNetwork",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "https://raw.githubusercontent.com/abswaxing/azure-templates/master/network/vnet-multiple-subnet.json",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": { "value": "[variables('location')]" },
+          "virtualNetworkName": { "value": "EastUS2-Network-01" },
+          "virtualNetworkPrefix": { "value": "10.1.0.0/16" },
+          "subnetNameVm": { "value": "VirtualMachine-Subnet-01" },
+		  "subnetPrefixVm": {"value": "10.1.2.0/24"},
+          "subnetNameAd": { "value": "ActiveDirectory-Subnet-01" },
+          "subnetPrefixAd": { "value": "10.1.1.0/24" }
+        }
+      }
+    }
+  ]
+}
