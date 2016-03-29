@@ -1,0 +1,29 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+  },
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "apiVersion": "2015-01-01"
+  },
+  "resources": [
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "name": "StorageAccount",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "https://raw.githubusercontent.com/abswaxing/azure-templates/master/storage-account/storage-account.json",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": { "value": "[variables('location')]" },
+          "storageAccountName": { "value": "[concat(uniquestring(resourceGroup().id), 'standardsa')]" },
+          "storageAccountType": { "value": "Standard_LRS" }
+        }
+      }
+    }
+  ]
+}
