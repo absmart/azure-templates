@@ -24,7 +24,7 @@
     },
     "subnetNameVm": {
       "type": "string",
-      "defaultValue": "Subnet",
+      "defaultValue": "VirtualMachineSubnet",
       "metadata": {
         "description": "The name for the Azure Subnet"
       }
@@ -38,7 +38,7 @@
     },
     "subnetNameAd": {
       "type": "string",
-      "defaultValue": "Subnet",
+      "defaultValue": "ActiveDirectorySubnet",
       "metadata": {
         "description": "The name for the Azure Subnet"
       }
@@ -52,10 +52,7 @@
     }
   },
   "variables": {
-    "api-version": "2015-06-15",
-    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-    "subnetRefAd": "[concat(variables('vnetID'),'/subnets/',parameters('subnetNameAd'))]",
-    "subnetRefVm": "[concat(variables('vnetID'),'/subnets/',parameters('subnetNameAd'))]"
+    "api-version": "2015-06-15"
   },
   "resources": [
     {
@@ -74,7 +71,9 @@
             "name": "[parameters('subnetNameAd')]",
             "properties": {
               "addressPrefix": "[parameters('subnetPrefixAd')]"
-            },
+            }
+          },
+          {
             "name": "[parameters('subnetNameVm')]",
             "properties": {
               "addressPrefix": "[parameters('subnetPrefixVm')]"
