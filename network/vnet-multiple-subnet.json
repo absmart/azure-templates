@@ -1,0 +1,87 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "The location to deploy the resources into"
+      }
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "defaultValue": "VirtualNetwork",
+      "metadata": {
+        "description": "Arbitrary name for the Azure Virtual Network"
+      }
+    },
+    "virtualNetworkPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/16",
+      "metadata": {
+        "description": "The subnet for the Azure Virtual Network"
+      }
+    },
+    "subnetNameVm": {
+      "type": "string",
+      "defaultValue": "Subnet",
+      "metadata": {
+        "description": "The name for the Azure Subnet"
+      }
+    },
+    "subnetPrefixVm": {
+      "type": "string",
+      "defaultValue": "10.0.2.0/24",
+      "metadata": {
+        "description": "CIDR block for VM subnet, subset of azureVNetAddressPrefix address space. This must be within the address prefix of the Virtual Network"
+      }
+    },
+    "subnetNameAd": {
+      "type": "string",
+      "defaultValue": "Subnet",
+      "metadata": {
+        "description": "The name for the Azure Subnet"
+      }
+    },
+    "subnetPrefixAd": {
+      "type": "string",
+      "defaultValue": "10.0.1.0/24",
+      "metadata": {
+        "description": "CIDR block for VM subnet, subset of azureVNetAddressPrefix address space. This must be within the address prefix of the Virtual Network"
+      }
+    }
+  },
+  "variables": {
+    "api-version": "2015-06-15",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "subnetRefAd": "[concat(variables('vnetID'),'/subnets/',parameters('subnetNameAd'))]",
+    "subnetRefVm": "[concat(variables('vnetID'),'/subnets/',parameters('subnetNameAd'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "[variables('api-version')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[parameters('virtualNetworkName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('virtualNetworkPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[parameters('subnetNameAd')]",
+            "properties": {
+              "addressPrefix": "[parameters('subnetPrefixAd')]"
+            },
+            "name": "[parameters('subnetNameVm')]",
+            "properties": {
+              "addressPrefix": "[parameters('subnetPrefixVm')]"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
