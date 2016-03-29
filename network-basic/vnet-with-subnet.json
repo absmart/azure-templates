@@ -34,9 +34,7 @@
   "variables": {
     "api-version": "2015-06-15",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-    "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]",
-    "subnetActiveDirectoryName": "ActiveDirectory",
-    "subnetActiveDirectoryPrefix": ""
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]"
   },
   "resources": [
     {
@@ -55,12 +53,6 @@
             "name": "[parameters('subnetName')]",
             "properties": {
               "addressPrefix": "[parameters('subnetPrefix')]"
-            }
-          },
-          {
-            "name": "[variables('subnetActiveDirectoryName')]",
-            "properties": {
-                "addressPrefix": "[variables('subnetActiveDirectoryPrefix')]"
             }
           }
         ]

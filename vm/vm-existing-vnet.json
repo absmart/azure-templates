@@ -3,51 +3,20 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
 
-    "vmNamePrefix": {
+    "vmName": {
       "type": "string",
       "metadata": {
-        "description": "The Prefix of the VM Name"
+        "description": "The name of the virtual machine"
       },
-      "defaultValue": "ADVM"
+      "defaultValue": "VirtualMachine"
     },
     "availabilitySetName": {
       "type": "string",
       "metadata": {
-        "description": "The Available Set Name"
+        "description": "The Availablility Set name"
       },
-      "defaultValue": "ADAvailableSet"
+      "defaultValue": "AvailableSet"
     },
-
-    "windowsImagePublisher": {
-      "type": "string",
-      "metadata": {
-        "description": "The Publisher of Windows Image"
-      },
-      "defaultValue": "MicrosoftWindowsServer"
-    },
-    "windowsImageOffer": {
-      "type": "string",
-      "metadata": {
-        "description": "The offer of Windows Image"
-      },
-      "defaultValue": "WindowsServer"
-    },
-    "windowsImageSKU": {
-      "type": "string",
-      "metadata": {
-        "description": "The SKU Name of Windows Image"
-      },
-      "defaultValue": "2012-R2-Datacenter"
-    },
-
-    "windowsImageVersion": {
-      "type": "string",
-      "metadata": {
-        "description": "The Version of Windows Image"
-      },
-      "defaultValue": "latest"
-    },
-
     "storageAccount": {
       "type": "string",
       "metadata": {
@@ -80,33 +49,6 @@
       }
     },
 
-    "location": {
-      "type": "string",
-      "allowedValues": [
-        "West US",
-        "East US",
-        "East US 2",
-        "Central US",
-        "South Central US",
-        "North Central US",
-        "North Europe",
-        "West Europe",
-        "East Asia",
-        "Southeast Asia",
-        "Japan East",
-        "Japan West",
-        "Brazil South",
-        "Australia East",
-        "Australia Southeast",
-        "Central India",
-        "South India",
-        "West India"
-      ],
-      "metadata": {
-        "description": "The region to deploy the resources into"
-      }
-    },
-
     "vmSize": {
       "type": "string",
       "allowedValues": [
@@ -127,34 +69,9 @@
         "Standard_D14",
         "Standard_DS14"
       ],
+      "defaultValue": "Standard_DS2",
       "metadata": {
         "description": "The size of the AD VMs Created"
-      }
-    },
-    "dnsPrefix": {
-      "type": "string",
-      "metadata": {
-        "description": "The DNS Prefix for the Public IP Address"
-      }
-    },
-    "subnetUri": {
-      "type": "string",
-      "metadata": {
-        "description": "the reference to the subnet"
-      }
-    },
-
-    "primaryAdIpAddress": {
-      "type": "string",
-      "metadata": {
-        "description": "The address of Primary AD"
-      }
-    },
-
-    "secondaryIpAddress": {
-      "type": "string",
-      "metadata": {
-        "description": "The address of secondary AD"
       }
     }
   },
@@ -164,6 +81,13 @@
     "apiVersionVirtualMachines": "2015-06-15",
     "apiVersionVMExtensions": "2015-06-15",
     "apiVersionStorage": "2015-06-15",
+
+    "windowsImagePublisher": "MicrosoftWindowsServer",
+    "windowsImageOffer": "WindowsServer",
+    "windowsImageSKU": "2012-R2-Datacenter",
+    "windowsImageVersion": "latest",
+
+    "location": "[resourceGroup().location]",
     "windowsDiskSize": 128,
     "publicLBName": "ADPublicLoadBalancer",
     "publicIPAddressName": "[concat(parameters('availabilitySetName'), 'PublicIp')]",
@@ -183,7 +107,7 @@
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[parameters('storageAccount')]",
       "apiVersion": "[variables('apiVersionStorage')]",
-      "location": "[parameters('location')]",
+      "location": "[variables('location')]",
       "properties": {
         "accountType": "[parameters('storageAccountType')]"
       }
@@ -192,25 +116,22 @@
       "apiVersion": "[variables('apiVersionNetworks')]",
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('publicIPAddressName')]",
-      "location": "[parameters('location')]",
+      "location": "[variables('location')]",
       "properties": {
-        "publicIPAllocationMethod": "Dynamic",
-        "dnsSettings": {
-          "domainNameLabel": "[parameters('dnsPrefix')]"
-        }
+        "publicIPAllocationMethod": "Dynamic"
       }
     },
     {
       "type": "Microsoft.Compute/availabilitySets",
       "name": "[parameters('availabilitySetName')]",
       "apiVersion": "[variables('apiVersionNetworks')]",
-      "location": "[parameters('location')]"
+      "location": "[variables('location')]"
     },
     {
       "apiVersion": "[variables('apiVersionNetworks')]",
       "name": "[variables('publicLBName')]",
       "type": "Microsoft.Network/loadBalancers",
-      "location": "[parameters('location')]",
+      "location": "[variables('location')]",
       "dependsOn": [
         "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
       ],
@@ -249,7 +170,7 @@
     {
       "name": "[concat(variables('adDNicName'), '0')]",
       "type": "Microsoft.Network/networkInterfaces",
-      "location": "[parameters('location')]",
+      "location": "[variables('location')]",
       "dependsOn": [
         "[concat('Microsoft.Network/loadBalancers/',variables('publicLBName'))]"
       ],
@@ -283,7 +204,7 @@
       "apiVersion": "[variables('apiVersionVirtualMachines')]",
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(parameters('vmNamePrefix'), copyindex())]",
-      "location": "[parameters('location')]",
+      "location": "[variables('location')]",
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts',parameters('storageAccount'))]",
         "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('adDNicName'), copyindex()))]",
