@@ -1,6 +1,7 @@
 {
   "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
+  
   "parameters": {
     "siteName": {
       "type": "string",
@@ -14,44 +15,14 @@
       "defaultValue": "ServicePlan",
       "metadata": {
         "description": "Sets the hosting plan name prefix for the web app. The concatenation of the service plan name and the region make up the full name of the plan."
-      }
+      },
     },
-    "hostingPlanSize": {
-      "type": "string",
-      "allowedValues": [
-        "Standard",
-        "Premium"
-      ],
-      "defaultValue": "Standard",
-      "metadata": {
-        "description": "Set the hosting type for the web app service plan."
-      }
-    },
-    "workerSize": {
-      "type": "int",
-      "minValue": 0,
-      "maxValue": 2,
-      "defaultValue": 0,
-      "metadata": {
-        "description": "Set the performance level of the service plan. Accepts values 0, 1 or 2."
-      }
-    },
-    "numberOfWorkers": {
-      "type": "int",
-      "defaultValue": 1,
-      "minValue": 1,
-      "maxValue": 10,
-      "metadata": {
-        "description": "The number of web instances for the service plan. This value can be from 1 to 10."
-      }
-    },
-    "applicationInsightsName": {
-      "type": "string",
-      "defaultValue": "ApplicationInsights",
-      "metadata": {
-        "description":  "Enter a name used by the web app for Application Insights."
-      }
-    },
+    "hostingPlanResourceGroup": {
+        "type": "string",
+        "metadata": {
+          "description": "Enter the name of the hostingPlanName's resource group."
+        }
+      },
     "storageAccountName": {
       "type": "string",
       "minLength": "3",
@@ -68,10 +39,9 @@
     "storageAccountApiVersion": "2015-06-15",
     "applicationInsightsApiVersion": "2014-04-01",
     "webAppName": "[concat(parameters('siteName'), '-', resourceGroup().location)]",
-    "hostingPlanName": "[concat(parameters('hostingPlanName'), '-', resourcegroup().location)]",
     "productionSlotName": "production",
     "stagingSlotName": "staging",
-    "applicationInsightsName": "[concat(parameters('siteName'), '-', resourcegroup().location)]",
+    "applicationInsightsName": "[parameters('siteName')]",
     "storageAccountId": "[concat(resourceGroup().id,'/providers/Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
     "siteProperties": {
             "phpVersion": "5.5",
@@ -111,36 +81,21 @@
     },
     {
       "apiVersion": "[variables('apiVersion')]",
-      "name": "[parameters('hostingPlanName')]",
-      "type": "Microsoft.Web/serverFarms",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "name": "[parameters('hostingPlanName')]",
-        "sku": "[parameters('hostingPlanSize')]",
-        "workerSize": "[parameters('workerSize')]",
-        "numberOfWorkers": "[parameters('numberOfWorkers')]"
-      }
-    },
-    {
-      "apiVersion": "[variables('apiVersion')]",
       "name": "[parameters('siteName')]",
       "type": "Microsoft.Web/sites",
       "location": "eastus2",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverFarms', parameters('hostingPlanName'))]"
-      ],
       "properties": {
-        "serverFarmId": "[parameters('hostingPlanName')]"
+        "serverFarmId": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', parameters('hostingPlanResourceGroup'), '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
       },
       "resources": [
         {
-            "apiVersion": "2015-08-01",
-            "name": "web",
-            "type": "config",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]"
-            ],
-            "properties": "[variables('siteProperties')]"
+          "apiVersion": "2015-08-01",
+          "name": "web",
+          "type": "config",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]"
+          ],
+          "properties": "[variables('siteProperties')]"
         },
         {
           "apiVersion": "[variables('apiVersion')]",
@@ -250,18 +205,15 @@
       ]
     },
     {
-      "name": "[concat('autoscale-', parameters('hostingPlanName'), '-', resourceGroup().name)]",
+      "name": "[concat('autoscale-', parameters('hostingPlanName'), '-', parameters('hostingPlanResourceGroup'))]",
       "type": "Microsoft.Insights/autoscalesettings",
       "location": "[resourceGroup().location]",
       "apiVersion": "[variables('apiVersion')]",
-      "dependsOn": [
-        "[concat('Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
-      ],
       "tags": {
-        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]": "Resource"
+        "[concat('hidden-link:', '/subscriptions/', subscription().subscriptionId, '/resourceGroups/',  parameters('hostingPlanResourceGroup'), '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]": "Resource"
       },
       "properties": {
-        "name": "[concat('autoscale-', parameters('hostingPlanName'), '-', resourceGroup().name)]",
+        "name": "[concat('autoscale-', parameters('hostingPlanName'), '-', parameters('hostingPlanResourceGroup'))]",
         "profiles": [
           {
             "name": "Default",
@@ -294,12 +246,12 @@
           }
         ],
         "enabled": true,
-        "targetResourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
+        "targetResourceUri": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', parameters('hostingPlanResourceGroup'), '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
       }
     },
     {
       "apiVersion": "[variables('applicationInsightsApiVersion')]",
-      "name": "[parameters('applicationInsightsName')]",
+      "name": "[variables('applicationInsightsName')]",
       "type": "Microsoft.Insights/components",
       "location": "Central US",
       "dependsOn": [
