@@ -17,13 +17,13 @@
       },
       "defaultValue": "AvailableSet"
     },
+
     "storageAccount": {
       "type": "string",
       "metadata": {
         "description": "The Storage Account Name"
       }
     },
-
     "storageAccountType": {
       "type": "string",
       "allowedValues": [
@@ -36,6 +36,7 @@
         "description": "The type of the Storage Account created"
       }
     },
+
     "adminUsername": {
       "type": "string",
       "metadata": {
@@ -71,7 +72,7 @@
       ],
       "defaultValue": "Standard_DS2",
       "metadata": {
-        "description": "The size of the AD VMs Created"
+        "description": "The size of the VM"
       }
     }
   },
@@ -181,9 +182,9 @@
             "name": "ipconfig1",
             "properties": {
               "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[parameters('primaryAdIpAddress')]",
+              "privateIPAddress": "[parameters('ipAddress')]",
               "subnet": {
-                "id": "[parameters('subnetUri')]"
+                "id": "[variables('subnetUri')]"
               },
               "loadBalancerBackendAddressPools": [
                 {
