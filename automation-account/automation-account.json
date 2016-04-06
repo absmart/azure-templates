@@ -1,0 +1,31 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "2.0.0.0",
+  "parameters": {
+	"accountName": {
+        "type": "string",
+        "defaultValue": "absVMGroup"
+      },
+      "location": {
+        "type": "string",
+        "defaultValue": "eastus2"
+      }
+  },
+  "variables": {
+    "apiVersion": "2015-01-01-preview",
+	"location": "eastus2"
+  },
+
+  "resources": [
+    {
+      "name": "[parameters('accountName')]",
+	  "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Automation/automationAccounts",
+      "location": "[variables('location')]",
+      "properties": {
+		  "sku": "Free"
+      }
+	  
+    }
+  ]
+}
