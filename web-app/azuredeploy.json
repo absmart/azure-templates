@@ -67,6 +67,10 @@
     "trafficManagerApiVersion": "2015-04-28-preview",
     "storageAccountApiVersion": "2015-06-15",
     "applicationInsightsApiVersion": "2014-04-01",
+
+    "storageAccountName": "[toLower(parameters('storageAccountName'))]",
+    "storageAccountType": "Standard_LRS",
+
     "webAppName": "[concat(parameters('siteName'), '-', resourceGroup().location)]",
     "hostingPlanName": "[concat(parameters('hostingPlanName'), '-', resourcegroup().location)]",
     "productionSlotName": "production",
@@ -74,40 +78,40 @@
     "applicationInsightsName": "[concat(parameters('siteName'), '-', resourcegroup().location)]",
     "storageAccountId": "[concat(resourceGroup().id,'/providers/Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
     "siteProperties": {
-            "phpVersion": "5.5",
-            "netFrameworkVersion": "v4.0",
-            "use32BitWorkerProcess": false,
-            "webSocketsEnabled": true,
-            "alwaysOn": true,
-            "requestTracingEnabled": true,
-            "httpLoggingEnabled": true,
-            "logsDirectorySizeLimit": 40,
-            "detailedErrorLoggingEnabled": true,
-            "remoteDebuggingEnabled": false,
-            "remoteDebuggingVersion": "VS2013",
-            
-            "defaultDocuments": [
-                "Default.htm",
-                "Default.html",
-                "Default.asp",
-                "index.htm",
-                "index.html",
-                "iisstart.htm",
-                "default.aspx",
-                "index.php",
-                "hostingstart.html"
-            ],
+      "phpVersion": "5.5",
+      "netFrameworkVersion": "v4.0",
+      "use32BitWorkerProcess": false,
+      "webSocketsEnabled": true,
+      "alwaysOn": true,
+      "requestTracingEnabled": true,
+      "httpLoggingEnabled": true,
+      "logsDirectorySizeLimit": 40,
+      "detailedErrorLoggingEnabled": true,
+      "remoteDebuggingEnabled": false,
+      "remoteDebuggingVersion": "VS2013",
+
+      "defaultDocuments": [
+        "Default.htm",
+        "Default.html",
+        "Default.asp",
+        "index.htm",
+        "index.html",
+        "iisstart.htm",
+        "default.aspx",
+        "index.php",
+        "hostingstart.html"
+      ]
     }
   },
   "resources": [
     {
       "apiVersion": "[variables('storageAccountApiVersion')]",
-      "name": "[toLower(parameters('storageAccountName'))]",
+      "name": "[variables('storageAccountName')]",
       "location": "[resourceGroup().location]",
       "type": "Microsoft.Storage/storageAccounts",
       "properties": {
-        "accountType": "Standard_LRS"
-      }
+        "accountType": "[variables('storageAccountType')]"
+      } 
     },
     {
       "apiVersion": "[variables('apiVersion')]",
