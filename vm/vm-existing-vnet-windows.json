@@ -19,14 +19,6 @@
       "defaultValue": "AvailabilitySet"
     },
 
-    "storageAccountName": {
-      "type": "string",
-      "defaultValue": "GEN-UNIQUE",
-      "metadata": {
-        "description": "Enter a globally unique storage account prefix name for the VM's VHD files"
-      }
-    },
-
     "adminUsername": {
       "type": "string",
       "metadata": {
@@ -88,7 +80,7 @@
     "rdpPort": 3389,
     "nicName": "[concat(parameters('vmName'), '-Nic')]",
 
-    "storageAccountName": "[tolower(parameters('storageAccountName'))]",
+    "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'vm')]",
     "storageAccountType": "Standard_LRS",
     "vhdContainerName": "vhds",
 
