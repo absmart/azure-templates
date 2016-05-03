@@ -6,7 +6,6 @@ $NetworkRgName = "Network-01-EastUS2"
 $VmRgName = "SiteRecovery-01-EastUS2"
 $Location = "eastus2"
 
-
 Get-AzureRmContext -ErrorAction Stop
 
 try{ Get-AzureRMResourceGroup -Name $ResourceGroup -Location $Location }
@@ -41,11 +40,25 @@ $VpnParameters = @{
 Start-Job -Name $DeploymentName -ArgumentList @VpnParameters -ScriptBlock{
     param(
         $AzureRmProfilePath,
-        @VpnParameters
+        $location,
+		$vpnType,
+		$localGatewayName,
+		$localGatewayIpAddress,
+		$localAddressPrefix,
+		$virtualNetworkName,
+		$azureVnetAddressPrefix,
+		$subnetName,
+		$SubnetPrefix,
+		$gatewaySubnetPrefix,
+		$gatewayPublicIpName,
+		$gatewayName,
+		$gatewaySku,
+		$connectionName,
+		$sharedKey
     )
 
     Select-AzureRmProfile -Profile $AzureRmProfilePath
-    New-AzureRmResouceGroupDeployment @VpnParameters
+    New-AzureRmResouceGroupDeployment @vpnparameters
 }
 
 

@@ -1,0 +1,40 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+  },
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "apiVersion": "2015-01-01"
+  },
+  "resources": [
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "name": "VirtualNetwork",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "https://raw.githubusercontent.com/absmart/azure-templates/master/network/vnet-multiple-subnet.json",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": { "value": "[variables('location')]" },
+          "vpnType": { "value": "PolicyBased" },
+          "localGatewayName": { "value": "LocalGateway" },
+          "localGatewayIpAddress": { "value": "1.2.3.4" },
+          "localAddressPrefix": { "value": "192.168.0.0/24" },
+          "virtualNetworkName": { "value": "ASR-VirtualNetwork-01" },
+          "azureVNetAddressPrefix": { "value": "10.3.0.0/16" },
+          "subnetName": { "value": "Subnet-01" },
+          "subnetPrefix": { "value": "10.3.1.0/24" },
+          "gatewaySubnetPrefix": { "value": "10.3.200.0/29" },
+          "gatewayPublicIPName": { "value": "GatewayIp" },
+          "gatewayName": { "value": "Gateway" },
+          "connectionName": { "value": "SiteToSiteConnection" },
+          "sharedKey": { "value": "ABCDEF123456789"}
+        }
+      }
+    }
+  ]
+}
