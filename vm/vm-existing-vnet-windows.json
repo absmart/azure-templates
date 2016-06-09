@@ -34,27 +34,21 @@
 
     "vmSize": {
       "type": "string",
-      "allowedValues": [
-        "Standard_D1",
-        "Standard_DS1",
-        "Standard_D2",
-        "Standard_DS2",
-        "Standard_D3",
-        "Standard_DS3",
-        "Standard_D4",
-        "Standard_DS4",
-        "Standard_D11",
-        "Standard_DS11",
-        "Standard_D12",
-        "Standard_DS12",
-        "Standard_D13",
-        "Standard_DS13",
-        "Standard_D14",
-        "Standard_DS14"
-      ],
       "defaultValue": "Standard_DS2",
       "metadata": {
         "description": "The size of the VM"
+      }
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the virtual network to add the VM"
+      }
+    },
+    "subnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the subnet to add the VM"
       }
     }
   },
@@ -72,21 +66,21 @@
     "windowsOSVersion": "2012-R2-Datacenter",
     "windowsDiskSize": 128,
 
-    "publicIpAddressName": "[concat(parameters('vmName'), '-PublicIp')]",
+    "publicIpAddressName": "[concat(parameters('vmName'), '-pip')]",
     "publicIpAddressType": "Dynamic",
     "dnsLabelPrefix": "[concat(parameters('vmName'), 'public')]",
 
     "location": "[resourceGroup().location]",
     "rdpPort": 3389,
-    "nicName": "[concat(parameters('vmName'), '-Nic')]",
+    "nicName": "[concat(parameters('vmName'), '-nic')]",
 
     "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'vm')]",
-    "storageAccountType": "Standard_LRS",
+    "storageAccountType": "Standard_GRS",
     "vhdContainerName": "vhds",
 
-    "virtualNetworkResourceGroup": "Network-EastUS2",
-    "virtualNetworkName": "EastUS2-Network-01",
-    "subnetName": "VirtualMachine-Subnet-01",
+    "virtualNetworkResourceGroup": "[resourceGroup().name]",
+    "virtualNetworkName": "[parameters('virtualNetworkName')]",
+    "subnetName": "[parameters('subnetName')]",
     "vnetId": "[resourceId(variables('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetId'),'/subnets/',variables('subnetName'))]"
   },
@@ -151,7 +145,7 @@
       "name": "[parameters('vmName')]",
       "location": "[variables('location')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts',parameters('storageAccountName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts',variables('storageAccountName'))]",
         "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]",
         "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
       ],
@@ -178,7 +172,7 @@
           "osDisk": {
             "name": "osdisk",
             "vhd": {
-              "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/',variables('vhdContainerName'),'/', parameters('vmName'), '-osdisk.vhd')]"
+              "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vhdContainerName'),'/', parameters('vmName'), '-osdisk.vhd')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
@@ -186,7 +180,7 @@
           "dataDisks": [
             {
               "vhd": {
-                "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/',variables('vhdContainerName'),'/', parameters('vmName'), 'data-1.vhd')]"
+                "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vhdContainerName'),'/', parameters('vmName'), 'data-1.vhd')]"
               },
               "name": "[concat(parameters('vmName'), '-data-disk1')]",
               "caching": "None",
