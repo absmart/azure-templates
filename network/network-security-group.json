@@ -1,0 +1,222 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "networkSecurityGroupName": {
+      "type": "string",
+      "defaultValue": "nsg",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "subnetName": {
+      "type": "string"
+    },
+    "securityRuleName": {
+      "type": "string"
+    },
+    "protocol": {
+      "type": "string",
+      "allowedValues": [
+        "TCP",
+        "UDP",
+        "*"
+      ],
+      "defaultValue": "*"
+    },
+    "sourcePortRange": {
+      "type": "string",
+      "defaultValue": "*"
+    },
+    "sourceAddressPrefix": {
+      "type": "string",
+      "defaultValue": "*",
+      "metadata": {
+        "description": "This value can be *, Internet, AzureLoadbalancer or VirtualNetwork"
+      }
+    },
+    "destinationPortRange": {
+      "type": "string"
+    },
+    "destinationAddressPrefix": {
+      "type": "string",
+      "defaultValue": "*",
+      "metadata": {
+        "description": "This value can be *, Internet, AzureLoadbalancer or VirtualNetwork"
+      }
+    },
+    "access": {
+      "type": "string",
+      "allowedValues": [
+        "Allow",
+        "Deny"
+      ]
+    },
+    "direction": {
+      "type": "string",
+      "allowedValues": [
+        "Inbound",
+        "Outbound"
+      ]
+    },
+    "priority": {
+      "type": "int",
+      "defaultValue": 100
+    }
+  },
+  "variables": {
+    "apiVersion": "2016-03-30",
+    "location": "[resourceGroup().location]"
+  },
+  "resources": [
+    {
+      "name": "web-prod-nsg",
+      "apiVersion": "[variables('apiVersion')]",
+      "location": "[variables('location')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "allow-80-any",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationPortRange": "80",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "direction": "Inbound",
+              "priority": 110
+            }
+          },
+          {
+            "name": "allow-443-any",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationPortRange": "443",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "direction": "Inbound",
+              "priority": 120
+            }
+          },
+          {
+            "name": "allow-rdp-internal-01",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "10.1.1.0/24",
+              "destinationPortRange": "3389",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "direction": "Inbound",
+              "priority": 130
+            }
+          },
+          {
+            "name": "allow-rdp-internal-02",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "172.23.9.0/24",
+              "destinationPortRange": "3389",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "direction": "Inbound",
+              "priority": 140
+            }
+          },
+          {
+            "name": "allow-rdp-internal-03",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "172.23.16.0/24",
+              "destinationPortRange": "3389",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "direction": "Inbound",
+              "priority": 150
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "web-dev-nsg",
+      "apiVersion": "[variables('apiVersion')]",
+      "location": "[variables('location')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "allow-80-any",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationPortRange": "80",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "direction": "Inbound",
+              "priority": 110
+            }
+          },
+          {
+            "name": "allow-443-any",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationPortRange": "443",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "direction": "Inbound",
+              "priority": 120
+            }
+          },
+          {
+            "name": "allow-rdp-internal-01",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "10.1.1.0/24",
+              "destinationPortRange": "3389",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "direction": "Inbound",
+              "priority": 130
+            }
+          },
+          {
+            "name": "allow-rdp-internal-02",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "172.23.9.0/24",
+              "destinationPortRange": "3389",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "direction": "Inbound",
+              "priority": 140
+            }
+          },
+          {
+            "name": "allow-rdp-internal-03",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "172.23.16.0/24",
+              "destinationPortRange": "3389",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "direction": "Inbound",
+              "priority": 150
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

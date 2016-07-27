@@ -1,0 +1,309 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+            "location": {
+                "type": "string",
+                "metadata": {
+                    "description": "Region where the resources will be deployed"
+                },
+                "allowedValues": [
+                    "Central US",
+                    "East US",
+                    "East US2",
+                    "North Central US",
+                    "South Central US",
+                    "West US",
+                    "North Europe",
+                    "West Europe",
+                    "East Asia",
+                    "Southeast Asia",
+                    "Japan East",
+                    "Japan West",
+                    "Brazil South",
+                    "Australia East",
+                    "Australia Southeast",
+                    "Central India",
+                    "South India",
+                    "West India"
+                ],
+                "defaultValue": "North Central US"
+            },
+            "vpnType": {
+                "type": "string",
+                "metadata": {
+                    "description": "Route based or policy based"
+                },
+                "defaultValue": "RouteBased",
+                "allowedValues": [
+                    "RouteBased",
+                    "PolicyBased"
+                ]
+            },
+            "localGatewayName": {
+                "type": "string",
+                "defaultValue": "LocalGateway",
+                "metadata": {
+                    "description": "Aribtary name for gateway resource representing "
+                }
+            },
+            "localGatewayIpAddress": {
+                "type": "string",
+                "defaultValue": "68.73.241.100",
+                "metadata": {
+                    "description": "Public IP of on-premises IPSEC tunnel"
+                }
+            },
+            "localAddressPrefix": {
+                "type": "array",
+                "defaultValue": ["172.23.9.0/24","172.23.16.0/24","10.1.10.0/24"],
+                "metadata": {
+                    "description": "CIDR block representing the address space of the OnPremise VPN network's Subnet"
+                }
+            },
+            "virtualNetworkName": {
+                "type": "string",
+                "defaultValue": "ncus-web-vnet",
+                "metadata": {
+                    "description": "Arbitrary name for the Azure Virtual Network"
+                }
+            },
+            "azureVNetAddressPrefix": {
+                "type": "string",
+                "defaultValue": "10.50.0.0/16",
+                "metadata": {
+                    "description": "CIDR block representing the address space of the Azure VNet"
+                }
+            },
+            "subnetName1": {
+                "type": "string",
+                "defaultValue": "ncus-dc-prod-subnet",
+                "metadata": {
+                    "description": "Production Domain Controller subnet"
+                }
+            },
+            "subnetPrefix1": {
+                "type": "string",
+                "defaultValue": "10.50.2.0/24",
+                "metadata": {
+                    "description": "Production Domain Controller subnet prefix"
+                }
+            },
+            "subnetName2": {
+                "type": "string",
+                "defaultValue": "ncus-web-prod-subnet",
+                "metadata": {
+                    "description": "Production web server subnet"
+                }
+            },
+            "subnetPrefix2": {
+                "type": "string",
+                "defaultValue": "10.50.3.0/24",
+                "metadata": {
+                    "description": "Production web server subnet prefix"
+                }
+            },
+            "subnetName3": {
+                "type": "string",
+                "defaultValue": "ncus-sql-prod-subnet",
+                "metadata": {
+                    "description": "Production SQL server subnet"
+                }
+            },
+            "subnetPrefix3": {
+                "type": "string",
+                "defaultValue": "10.50.4.0/24",
+                "metadata": {
+                    "description": "Production SQL server subnet prefix"
+                }
+            },
+            "subnetName4": {
+                "type": "string",
+                "defaultValue": "ncus-dc-dev-subnet",
+                "metadata": {
+                    "description": "Production SQL server subnet"
+                }
+            },
+            "subnetPrefix4": {
+                "type": "string",
+                "defaultValue": "10.50.5.0/24",
+                "metadata": {
+                    "description": "Production SQL server subnet prefix"
+                }
+            },
+            "subnetName5": {
+                "type": "string",
+                "defaultValue": "ncus-web-dev-subnet",
+                "metadata": {
+                    "description": "Production SQL server subnet"
+                }
+            },
+            "subnetPrefix5": {
+                "type": "string",
+                "defaultValue": "10.50.6.0/24",
+                "metadata": {
+                    "description": "Production SQL server subnet prefix"
+                }
+            },
+            "subnetName6": {
+                "type": "string",
+                "defaultValue": "ncus-sql-dev-subnet",
+                "metadata": {
+                    "description": "Production SQL server subnet"
+                }
+            },
+            "subnetPrefix6": {
+                "type": "string",
+                "defaultValue": "10.50.7.0/24",
+                "metadata": {
+                    "description": "Production SQL server subnet prefix"
+                }
+            },
+            "gatewaySubnetPrefix": {
+                "type": "string",
+                "defaultValue": "10.50.1.0/24",
+                "metadata": {
+                    "description": "CIDR block for GatewaySubnet, must be inside azureVNetAddressPrefix range"
+                }
+            },
+            "gatewayPublicIPName": {
+                "type": "string",
+                "defaultValue": "ncus-web-gw-ip",
+                "metadata": {
+                    "description": "Aribtary name for public IP resource used for the new azure gateway"
+                }
+            },
+            "gatewayName": {
+                "type": "string",
+                "defaultValue": "ncus-web-vgw",
+                "metadata": {
+                    "description": "Arbitrary name for the new gateway"
+                }
+            },
+            "gatewaySku":{
+                "type":"string",
+                "metadata":{
+                "description":"The Sku of the Gateway. This must be one of Basic, Standard or HighPerformance"
+                },
+                "defaultValue": "Basic",
+                "allowedValues": [
+                    "Basic",
+                    "Standard",
+                    "HighPerformance"
+                ]
+            },
+            "connectionName": {
+                "type": "string",
+                "defaultValue": "ncus-to-dupagecounty",
+                "metadata": {
+                    "description": "Arbitrary name for the new connection between Azure VNet and other network"
+                }
+            },
+            "sharedKey": {
+                "type": "securestring",
+                "metadata": {
+                    "description": "Shared key (PSK) for IPSec tunnel"
+                }
+            }
+        },
+    "variables": {
+
+          "apiVersion": "2015-01-01",
+
+          "availabilityGroupDcProd": "ncus-dc-prod-ag",
+          "availabilityGroupWebProd": "ncus-web-prod-ag",
+          "availabilityGroupSqlProd": "ncus-sql-prod-ag",
+          "availabilityGroupDcDev": "ncus-dc-dev-ag",
+          "availabilityGroupWebDev": "ncus-web-dev-ag",
+          "availabilityGroupSqlDev": "ncus-sql-dev-ag"
+    },    
+    "resources": [ 
+        { 
+            "apiVersion": "2015-01-01", 
+            "name": "virtualNetwork", 
+            "type": "Microsoft.Resources/deployments", 
+            "properties": { 
+                "mode": "Incremental", 
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/absmart/azure-templates/master/network/sitetosite-web-sql-stack.json",
+                    "contentVersion": "1.0.0.0"
+	            }, 
+                "parameters": { 
+                    "location":{"value": "[parameters('location')]"},
+                    "vpnType":{"value": "[parameters('vpnType')]"},
+                    "localGatewayName":{"value": "[parameters('localGatewayName')]"},
+                    "localGatewayIpAddress":{"value": "[parameters('localGatewayIpAddress')]"},
+                    "localAddressPrefix":{"value": "[parameters('localAddressPrefix')]"},
+                    "virtualNetworkName":{"value": "[parameters('virtualNetworkName')]"},
+                    "azureVNetAddressPrefix":{"value": "[parameters('azureVNetAddressPrefix')]"},
+                    "subnetName1":{"value": "[parameters('subnetName1')]"},
+                    "subnetPrefix1":{"value": "[parameters('subnetPrefix1')]"},
+                    "subnetName2":{"value": "[parameters('subnetName2')]"},
+                    "subnetPrefix2":{"value": "[parameters('subnetPrefix2')]"},
+                    "subnetName3":{"value": "[parameters('subnetName3')]"},
+                    "subnetPrefix3":{"value": "[parameters('subnetPrefix3')]"},
+                    "subnetName4":{"value": "[parameters('subnetName4')]"},
+                    "subnetPrefix4":{"value": "[parameters('subnetPrefix4')]"},
+                    "subnetName5":{"value": "[parameters('subnetName5')]"},
+                    "subnetPrefix5":{"value": "[parameters('subnetPrefix5')]"},
+                    "subnetName6":{"value": "[parameters('subnetName6')]"},
+                    "subnetPrefix6":{"value": "[parameters('subnetPrefix6')]"},
+                    "gatewaySubnetPrefix":{"value": "[parameters('gatewaySubnetPrefix')]"},
+                    "gatewayPublicIPName":{"value": "[parameters('gatewayPublicIPName')]"},
+                    "gatewayName":{"value": "[parameters('gatewayName')]"},
+                    "gatewaySku":{"value": "[parameters('gatewaySku')]"},
+                    "connectionName":{"value": "[parameters('connectionName')]"},
+                    "sharedKey":{"value": "[parameters('sharedKey')]"}
+                }                
+            }
+        },
+        {
+            "apiVersion": "2015-01-01", 
+            "name": "vmDC01", 
+            "type": "Microsoft.Resources/deployments", 
+            "properties": { 
+                "mode": "Incremental", 
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/absmart/azure-templates/master/vm/vm-existing-vnet-windows.json",
+                    "contentVersion": "1.0.0.0"
+	            },
+                "parameters": {
+                    "vmName":{"value": "DC01"},
+                    "availabilitySetName":{"value": "[variables('availabilityGroupDcProd')]"},
+                    "adminUsername":{"value": "alex"},
+                    "adminPassword":{"value": "securePassword"},
+                    "vmSize":{"value": "Standard_D1v2"},
+                    "virtualNetworkName":{"value": "[parameters('virtualNetworkName')]"},
+                    "subnetName":{"value": "[parameters('subnetName2')]"}
+                },
+                "dependsOn": [
+                    "[resourceId('Microsoft.Network/virtualNetwork/', parameters('virtualNetworkName'))]"
+                ]
+            }
+        },        
+        {
+            "apiVersion": "2015-01-01", 
+            "name": "vmDC02", 
+            "type": "Microsoft.Resources/deployments", 
+            "properties": { 
+                "mode": "Incremental", 
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/absmart/azure-templates/master/vm/vm-existing-vnet-windows.json",
+                    "contentVersion": "1.0.0.0"
+	            },
+                "parameters": {
+                    "vmName":{"value": "DC02"},
+                    "availabilitySetName":{"value": "[variables('availabilityGroupDcProd')]"},
+                    "adminUsername":{"value": "alex"},
+                    "adminPassword":{"value": "securePassword"},
+                    "vmSize":{"value": "Standard_D1v2"},
+                    "virtualNetworkName":{"value": "[parameters('virtualNetworkName')]"},
+                    "subnetName":{"value": "[parameters('subnetName2')]"}
+                },
+                "dependsOn": [
+                    "[resourceId('Microsoft.Network/virtualNetwork/', parameters('virtualNetworkName'))]"
+                ]
+            }
+        }
+    ]
+}

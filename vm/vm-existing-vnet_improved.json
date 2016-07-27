@@ -17,7 +17,6 @@
       },
       "defaultValue": "AvailableSet"
     },
-
     "storageAccount": {
       "type": "string",
       "metadata": {
@@ -36,18 +35,24 @@
         "description": "The type of the Storage Account created"
       }
     },
-
     "adminUsername": {
       "type": "string",
       "metadata": {
-        "description": "The name of the Administrator of the new VMs and Domain"
+        "description": "The name of the Administrator account"
       }
     },
     "adminPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "The password for the Administrator account of the new VMs and Domain"
+        "description": "The password for the Administrator account"
       }
+    },
+
+    "privateIpAddress": {
+        "type": "string",
+        "metadata": {
+            "description": "The static private IP address"
+        }
     },
 
     "vmSize": {
@@ -77,6 +82,7 @@
     }
   },
   "variables": {
+    
     "apiVersion": "2015-01-01",
     "apiVersionNetworks": "2015-06-15",
     "apiVersionVirtualMachines": "2015-06-15",
@@ -87,20 +93,13 @@
     "windowsImageOffer": "WindowsServer",
     "windowsImageSKU": "2012-R2-Datacenter",
     "windowsImageVersion": "latest",
-
+    
     "location": "[resourceGroup().location]",
-    "windowsDiskSize": 128,
-    "publicLBName": "ADPublicLoadBalancer",
-    "publicIPAddressName": "[concat(parameters('availabilitySetName'), 'PublicIp')]",
-    "lbFE": "ADLBFE",
-    "lbBE": "ADLBBE",
-    "rpdNAT": "ADRDPNAT",
-    "publiclbID": "[resourceId('Microsoft.Network/loadBalancers',variables('publicLBName'))]",
-    "publiclbFEConfigID": "[concat(variables('publiclbID'),'/frontendIPConfigurations/',variables('lbFE'))]",
-    "rdpPort": 3389,
-    "publicBEAddressPoolID": "[concat(variables('publiclbID'),'/backendAddressPools/',variables('lbBE'))]",
-    "adRDPNATRuleID": "[concat(variables('publiclbID'),'/inboundNatRules/',variables('rpdNAT'))]",
+    
+    "publicIPAddressName": "[concat('vmName', '-pubip')]",
     "nicName": "[concat(parameters('vmName'), '-nic')]",
+    
+    "windowsDiskSize": 128,
     "vmContainerName": "vhds"
   },
   "resources": [
@@ -129,73 +128,20 @@
       "location": "[variables('location')]"
     },
     {
-      "apiVersion": "[variables('apiVersionNetworks')]",
-      "name": "[variables('publicLBName')]",
-      "type": "Microsoft.Network/loadBalancers",
-      "location": "[variables('location')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
-      ],
-      "properties": {
-        "frontendIPConfigurations": [
-          {
-            "name": "[variables('lbFE')]",
-            "properties": {
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
-              }
-            }
-          }
-        ],
-        "backendAddressPools": [
-          {
-            "name": "[variables('lbBE')]"
-          }
-        ],
-        "inboundNatRules": [
-          {
-            "name": "[variables('rpdNAT')]",
-            "properties": {
-              "frontendIPConfiguration": {
-                "id": "[variables('publiclbFEConfigID')]"
-              },
-              "protocol": "tcp",
-              "frontendPort": "[variables('rdpPort')]",
-              "backendPort": 3389,
-              "enableFloatingIP": false
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "[concat(variables('adDNicName'), '0')]",
+      "name": "[variables('nicName')]",
       "type": "Microsoft.Network/networkInterfaces",
       "location": "[variables('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/loadBalancers/',variables('publicLBName'))]"
-      ],
       "apiVersion": "[variables('apiVersionNetworks')]",
       "properties": {
         "ipConfigurations": [
           {
-            "name": "ipconfig1",
+            "name": "vmIpConfig",
             "properties": {
               "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[parameters('ipAddress')]",
+              "privateIPAddress": "[parameters('privateIpAddress')]",
               "subnet": {
                 "id": "[variables('subnetUri')]"
-              },
-              "loadBalancerBackendAddressPools": [
-                {
-                  "id": "[variables('publicBEAddressPoolID')]"
-                }
-              ],
-              "loadBalancerInboundNatRules": [
-                {
-                  "id": "[variables('adRDPNATRuleID')]"
-                }
-              ]
+              }
             }
           }
         ]
@@ -204,13 +150,12 @@
     {
       "apiVersion": "[variables('apiVersionVirtualMachines')]",
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(parameters('vmNamePrefix'), copyindex())]",
+      "name": "[concat(parameters('vmName'), copyindex())]",
       "location": "[variables('location')]",
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts',parameters('storageAccount'))]",
-        "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('adDNicName'), copyindex()))]",
-        "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]",
-        "[resourceId('Microsoft.Network/loadBalancers',variables('publicLBName'))]"
+        "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicName'), copyindex()))]",
+        "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
       ],
       "copy": {
         "name": "ADMachineLoop",
@@ -224,16 +169,16 @@
           "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
         },
         "osProfile": {
-          "computerName": "[concat(parameters('vmNamePrefix'), copyindex())]",
+          "computerName": "[concat(parameters('vmName'), copyindex())]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]"
         },
         "storageProfile": {
           "imageReference": {
-            "publisher": "[parameters('windowsImagePublisher')]",
-            "offer": "[parameters('windowsImageOffer')]",
-            "sku": "[parameters('windowsImageSKU')]",
-            "version": "[parameters('windowsImageVersion')]"
+            "publisher": "[variables('windowsImagePublisher')]",
+            "offer": "[variables('windowsImageOffer')]",
+            "sku": "[variables('windowsImageSKU')]",
+            "version": "[variables('windowsImageVersion')]"
           },
           "osDisk": {
             "name": "osdisk",
