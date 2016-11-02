@@ -1,0 +1,57 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "value": "eastus2"
+        },
+        "virtualMachineName": {
+            "value": "web1"
+        },
+        "virtualMachineSize": {
+            "value": "Standard_D1_v2"
+        },
+        "adminUsername": {
+            "value": "alex"
+        },
+        "storageAccountName": {
+            "value": "absdemovmweb1"
+        },
+        "virtualNetworkName": {
+            "value": "prod-azure-vnet"
+        },
+        "networkInterfaceName": {
+            "value": "web1776"
+        },
+        "adminPassword": {
+            "value": null
+        },
+        "availabilitySetName": {
+            "value": "web"
+        },
+        "availabilitySetPlatformFaultDomainCount": {
+            "value": "3"
+        },
+        "availabilitySetPlatformUpdateDomainCount": {
+            "value": "5"
+        },
+        "diagnosticsStorageAccountName": {
+            "value": "azuredemovmrgdiag231"
+        },
+        "diagnosticsStorageAccountType": {
+            "value": "Standard_LRS"
+        },
+        "diagnosticsStorageAccountId": {
+            "value": "Microsoft.Storage/storageAccounts/azuredemovmrgdiag231"
+        },
+        "subnetName": {
+            "value": "web-subnet"
+        },
+        "publicIpAddressName": {
+            "value": "web1-ip"
+        },
+        "publicIpAddressType": {
+            "value": "Dynamic"
+        }
+    }
+}

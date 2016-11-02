@@ -1,0 +1,487 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetworkName": {
+            "type": "string",
+            "defaultValue": "prod-azure-vnet",
+            "metadata": {
+                "description": "Name of the Azure Virtual Network"
+            }
+        },
+        "azureVNetAddressPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/16",
+            "metadata": {
+                "description": "CIDR block representing the address space of the Azure Virtual Network"
+            }
+        },
+        "managementSubnetName": {
+            "type": "string",
+            "defaultValue": "management-subnet",
+            "metadata": {
+                "description": "Management subnet name"
+            }
+        },
+        "managementSubnetPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.1.0/24",
+            "metadata": {
+                "description": "Management subnet prefix"
+            }
+        },
+        "webSubnetName": {
+            "type": "string",
+            "defaultValue": "web-subnet",
+            "metadata": {
+                "description": "Web server subnet name"
+            }
+        },
+        "webSubnetPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.10.0/24",
+            "metadata": {
+                "description": "Web server subnet prefix"
+            }
+        },
+        "appSubnetName": {
+            "type": "string",
+            "defaultValue": "app-subnet",
+            "metadata": {
+                "description": "Application server subnet name"
+            }
+        },
+        "appSubnetPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.11.0/24",
+            "metadata": {
+                "description": "Application server subnet prefix"
+            }
+        },
+        "dataSubnetName": {
+            "type": "string",
+            "defaultValue": "data-subnet",
+            "metadata": {
+                "description": "Database server subnet name"
+            }
+        },
+        "dataSubnetPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.12.0/24",
+            "metadata": {
+                "description": "Database server subnet prefix"
+            }
+        },
+        "activeDirectorySubnetName": {
+            "type": "string",
+            "defaultValue": "activedirectory-subnet",
+            "metadata": {
+                "description": "Active Directory server subnet name"
+            }
+        },
+        "activeDirectorySubnetPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.9.0/24",
+            "metadata": {
+                "description": "Active Directory server subnet prefix"
+            }
+        },
+        "gatewaySubnetPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.255.224/27",
+            "metadata": {
+                "description": "CIDR block for GatewaySubnet, must be inside azureVNetAddressPrefix range"
+            }
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "apiVersion-vnet": "2015-06-15",
+        "apiVersion-nsg": "2016-03-30",
+        "dnsServer1": "10.0.9.10",
+        "dnsServer2": "10.0.9.11",
+        "activeDirectorySubnetNsgName": "[concat(parameters('activeDirectorySubnetName'), '-nsg')]",
+        "webSubnetNsgName": "[concat(parameters('webSubnetName'), '-nsg')]",
+        "appSubnetNsgName": "[concat(parameters('appSubnetName'), '-nsg')]",
+        "dataSubnetNsgName": "[concat(parameters('dataSubnetName'), '-nsg')]",
+        "managementSubnetNsgName": "[concat(parameters('managementSubnetName'), '-nsg')]"
+    },
+    "resources": [
+        {
+            "name": "[variables('managementSubnetNsgName')]",
+            "apiVersion": "[variables('apiVersion-nsg')]",
+            "location": "[variables('location')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow-rdp-management",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "[parameters('managementSubnetPrefix')]",
+                            "destinationPortRange": "3389",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "priority": 100
+                        }
+                    },
+                    {
+                        "name": "allow-http-any",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "80",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "priority": 150
+                        }
+                    },
+                    {
+                        "name": "allow-https-any",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "443",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "priority": 200
+                        }
+                    },
+                    {
+                        "name": "deny-implicit-any",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "priority": 4000    
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('webSubnetNsgName')]",
+            "apiVersion": "[variables('apiVersion-nsg')]",
+            "location": "[variables('location')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow-rdp-management",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "[parameters('managementSubnetPrefix')]",
+                            "destinationPortRange": "3389",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "priority": 100
+                        }
+                    },
+                    {
+                        "name": "allow-http-any",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "80",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "priority": 150
+                        }
+                    },
+                    {
+                        "name": "allow-https-any",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "443",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "priority": 200
+                        }
+                    },
+                    {
+                        "name": "deny-implicit-any",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "priority": 4000
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('appSubnetNsgName')]",
+            "apiVersion": "[variables('apiVersion-nsg')]",
+            "location": "[variables('location')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow-rdp-management",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "[parameters('managementSubnetPrefix')]",
+                            "destinationPortRange": "3389",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "priority": 100
+                        }
+                    },
+                    {
+                        "name": "allow-https-web",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "[parameters('webSubnetPrefix')]",
+                            "destinationPortRange": "443",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "priority": 200
+                        }
+                    },
+                    {
+                        "name": "deny-implicit-any",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "priority": 4000
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('dataSubnetNsgName')]",
+            "apiVersion": "[variables('apiVersion-nsg')]",
+            "location": "[variables('location')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow-rdp-management",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "[parameters('managementSubnetPrefix')]",
+                            "destinationPortRange": "3389",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "priority": 100
+                        }
+                    },
+                    {
+                        "name": "allow-sql-app",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "[parameters('dataSubnetPrefix')]",
+                            "destinationPortRange": "1433",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "priority": 150
+                        }
+                    },
+                    {
+                        "name": "deny-implicit-any",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "priority": 4000
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('activeDirectorySubnetNsgName')]",
+            "apiVersion": "[variables('apiVersion-nsg')]",
+            "location": "[variables('location')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow-rdp-management",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "[parameters('managementSubnetPrefix')]",
+                            "destinationPortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "priority": 100
+                        }
+                    },
+                    {
+                        "name": "allow-web-any",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "[parameters('webSubnetPrefix')]",
+                            "destinationPortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "priority": 150
+                        }
+                    },
+                    {
+                        "name": "allow-app-any",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "[parameters('appSubnetPrefix')]",
+                            "destinationPortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "priority": 200
+                        }
+                    },
+                    {
+                        "name": "allow-data-any",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "[parameters('dataSubnetPrefix')]",
+                            "destinationPortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "priority": 250
+                        }
+                    },
+                    {
+                        "name": "deny-implicit-any",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationPortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "direction": "Inbound",
+                            "priority": 4000
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersion-vnet')]",
+            "location": "[variables('location')]",
+            "name": "[parameters('virtualNetworkName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('activeDirectorySubnetNsgName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('webSubnetNsgName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('appSubnetNsgName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('dataSubnetNsgName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('managementSubnetNsgName'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('azureVNetAddressPrefix')]"
+                    ]
+                },
+                "dhcpOptions": {
+                    "dnsServers": [
+                        "[variables('dnsServer1')]",
+                        "[variables('dnsServer2')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('activeDirectorySubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('activeDirectorySubnetPrefix')]",
+                            "networkSecurityGroup": {
+                                "id": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Network/networkSecurityGroups/', variables('activeDirectorySubnetNsgName'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[parameters('webSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('webSubnetPrefix')]",
+                            "networkSecurityGroup": {
+                                "id": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Network/networkSecurityGroups/', variables('webSubnetNsgName'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[parameters('appSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('appSubnetPrefix')]",
+                            "networkSecurityGroup": {
+                                "id": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Network/networkSecurityGroups/', variables('appSubnetNsgName'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[parameters('managementSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('managementSubnetPrefix')]",
+                            "networkSecurityGroup": {
+                                "id": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Network/networkSecurityGroups/', variables('managementSubnetNsgName'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[parameters('dataSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('dataSubnetPrefix')]",
+                            "networkSecurityGroup": {
+                                "id": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Network/networkSecurityGroups/', variables('dataSubnetNsgName'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "GatewaySubnet",
+                        "properties": {
+                            "addressPrefix": "[parameters('gatewaySubnetPrefix')]"
+                        }
+                    }
+                ]
+            },
+            "type": "Microsoft.Network/virtualNetworks"
+        }
+    ]
+}

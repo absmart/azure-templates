@@ -1,0 +1,108 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "appVirtualMachineStorageAccount": {
+            "defaultValue": "absdemoapp146",
+            "type": "string"
+        },
+        "dataVirtualMachineStorageAccount": {
+            "defaultValue": "absdemodata154",
+            "type": "string"
+        },
+        "mgmtVirtualMachineStorageAccount": {
+            "defaultValue": "absdemomgmt174",
+            "type": "string"
+        },        
+        "dcVirtualMachineStorageAccount": {
+            "defaultValue": "absdemodc135",
+            "type": "string"
+        },
+        "webVirtualMachineStorageAccount": {
+            "defaultValue": "absdemoweb112",
+            "type": "string"
+        },
+        "diagnosticVirtualMachineStorageAccount": {
+            "defaultValue": "azuredemodiag134",
+            "type": "string"
+        }
+    },
+    "variables": {
+        "storageAccountApiVersion": "2016-01-01",
+        "location": "[resourceGroup().location]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "Storage",
+            "name": "[parameters('appVirtualMachineStorageAccount')]",
+            "apiVersion": "[variables('storageAccountApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": {}
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "Storage",
+            "name": "[parameters('dcVirtualMachineStorageAccount')]",
+            "apiVersion": "[variables('storageAccountApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": {}
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "Storage",
+            "name": "[parameters('dataVirtualMachineStorageAccount')]",
+            "apiVersion": "[variables('storageAccountApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": {}
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "Storage",
+            "name": "[parameters('mgmtVirtualMachineStorageAccount')]",
+            "apiVersion": "[variables('storageAccountApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": {}
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "Storage",
+            "name": "[parameters('webVirtualMachineStorageAccount')]",
+            "apiVersion": "[variables('storageAccountApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": {}
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "Storage",
+            "name": "[parameters('diagnosticVirtualMachineStorageAccount')]",
+            "apiVersion": "[variables('storageAccountApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": {}            
+        }
+    ]
+}

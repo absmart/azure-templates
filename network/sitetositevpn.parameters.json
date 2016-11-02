@@ -3,10 +3,10 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "location": {
-            "value": "North Central US"
+            "value": "East US2"
         },
         "vpnType": {
-            "value": "PolicyBased"
+            "value": "RouteBased"
         },
         "localGatewayName": {
             "value": "localGateway"
@@ -21,16 +21,16 @@
             "value": "Vnet"
         },
         "azureVNetAddressPrefix": {
-              "value": "10.3.0.0/16"
+              "value": "10.1.0.0/16"
         },
         "subnetName": {
             "value": "Subnet1"
         },
         "subnetPrefix": {
-             "value": "10.3.1.0/24"
+             "value": "10.1.1.0/24"
         },
         "gatewaySubnetPrefix": {
-             "value": "10.3.200.0/29"
+             "value": "10.1.254.0/24"
         },
         "gatewayPublicIPName": {
             "value": "GatewayIP"
