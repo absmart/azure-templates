@@ -1,0 +1,113 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sqlServerName": {
+            "type": "string"
+        },
+        "sqlDatabaseName": {
+            "type": "string"
+        },
+        "sqlDatabaseCollation": {
+            "type": "string",
+            "minLength": 1,
+            "defaultValue": "SQL_Latin1_General_CP1_CI_AS",
+            "metadata": {
+                "description": "The SQL database collation"
+            }
+        },
+        "sqlDatabaseEdition": {
+            "type": "string",
+            "defaultValue": "Basic",
+            "allowedValues": [
+                "Basic",
+                "Standard",
+                "Premium"
+            ],
+            "metadata": {
+                "description": "The SQL server edition"
+            }
+        },
+        "sqldatabaseRequestedServiceObjectiveName": {
+            "type": "string",
+            "defaultValue": "Basic",
+            "allowedValues": [
+                "Basic",
+                "S0",
+                "S1",
+                "S2",
+                "P1",
+                "P2",
+                "P3"
+            ],
+            "metadata": {
+                "description": "Describes the performance level for Edition"
+            }
+        },
+        "sqlAdministratorLogin": {
+            "type": "string"
+        },
+        "sqlAdministratorPassword": {
+            "type": "securestring"
+        },
+        "AllowedIpAddressName": {
+            "type": "string",
+            "minValue": 1
+        },
+        "startAllowedIpAddress": {
+            "type": "string"
+        },
+        "endAllowedIpAddress": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "location": "[resourcegroup().location]",
+        "apiVersion-sql": "2014-04-01-preview",
+        "sqlServerName": "[toLower(parameters('sqlServerName'))]"
+    },
+    "resources": [
+        {
+            "name": "[variables('sqlServerName')]",
+            "type": "Microsoft.Sql/servers",
+            "apiVersion": "[variables('apiVersion-sql')]",
+            "kind": "v12.0",
+            "location": "[variables('location')]",
+            "properties": {
+                "administratorLogin": "[parameters('sqlAdministratorLogin')]",
+                "administratorLoginPassword": "[parameters('sqlAdministratorPassword')]",
+                "version": "12.0"
+            },
+            "resources": [
+                {
+                    "name": "[parameters('sqlDatabaseName')]",
+                    "type": "databases",
+                    "apiVersion": "[variables('apiVersion-sql')]",
+                    "location": "[variables('location')]",
+                    "dependsOn": [
+                        "[variables('sqlServerName')]"
+                    ],
+                    "properties": {
+                        "collation": "[parameters('sqlDatabaseCollation')]",
+                        "maxSizeBytes": "1073741824",
+                        "edition": "[parameters('sqlDatabaseEdition')]",
+                        "requestedServiceObjectiveName": "[parameters('sqldatabaseRequestedServiceObjectiveName')]"
+                    }
+                },
+                {
+                    "type": "firewallrules",
+                    "apiVersion": "[variables('apiVersion-sql')]",
+                    "dependsOn": [
+                        "[variables('sqlServerName')]"
+                    ],
+                    "location": "[variables('location')]",
+                    "name": "[parameters('AllowedIpAddressName')]",
+                        "properties": {
+                        "startIpAddress": "[parameters('startAllowedIpAddress')]",
+                        "endIpAddress": "[parameters('endAllowedIpAddress')]"
+                    }
+                }
+            ]
+        }
+    ]
+}
