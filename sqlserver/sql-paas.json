@@ -36,9 +36,13 @@
                 "S0",
                 "S1",
                 "S2",
+                "S3",
                 "P1",
                 "P2",
-                "P3"
+                "P3",
+                "P4",
+                "P11",
+                "P15"
             ],
             "metadata": {
                 "description": "Describes the performance level for Edition"
@@ -49,16 +53,6 @@
         },
         "sqlAdministratorPassword": {
             "type": "securestring"
-        },
-        "AllowedIpAddressName": {
-            "type": "string",
-            "minValue": 1
-        },
-        "startAllowedIpAddress": {
-            "type": "string"
-        },
-        "endAllowedIpAddress": {
-            "type": "string"
         }
     },
     "variables": {
@@ -101,10 +95,10 @@
                         "[variables('sqlServerName')]"
                     ],
                     "location": "[variables('location')]",
-                    "name": "[parameters('AllowedIpAddressName')]",
-                        "properties": {
-                        "startIpAddress": "[parameters('startAllowedIpAddress')]",
-                        "endIpAddress": "[parameters('endAllowedIpAddress')]"
+                    "name": "AllowAllWindowsAzureIps",
+                    "properties": {
+                        "startIpAddress": "0.0.0.0",
+                        "endIpAddress": "0.0.0.0"
                     }
                 }
             ]

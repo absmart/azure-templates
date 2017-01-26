@@ -1,0 +1,415 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "webAppName": {
+      "type": "string",
+      "metadata": {
+        "description": "Sets the domain name prefix for the web app. The concatenation of the domain name and the regionalized DNS zone make up the full A record of the web app."
+      }
+    },
+    "servicePlanSize": {
+      "type": "string",
+      "allowedValues": [
+        "Free",
+        "Shared",
+        "Basic",
+        "Standard",
+        "Premium"
+      ],
+      "defaultValue": "Standard",
+      "metadata": {
+        "description": "Set the hosting type for the web app service plan."
+      }
+    },
+    "workerSize": {
+      "type": "int",
+      "minValue": 0,
+      "maxValue": 3,
+      "defaultValue": 0,
+      "metadata": {
+        "description": "Set the performance level of the service plan. Accepts values 0, 1 or 3."
+      }
+    },
+    "numberOfWorkers": {
+      "type": "int",
+      "defaultValue": 1,
+      "minValue": 1,
+      "maxValue": 10,
+      "metadata": {
+        "description": "The number of web instances for the service plan. This value can be from 1 to 10."
+      }
+    },
+    "storageAccountName": {
+      "type": "string",
+      "minLength": "3",
+      "maxLength": "24",
+      "metadata": {
+        "description": "Enter a globally-unique name for the storage account. Must be between 3 and 24 characters long."
+      }
+    },
+    "sqlServerName": {
+      "type": "string"
+    },
+    "sqlDatabaseName": {
+      "type": "string"
+    },
+    "sqlDatabaseCollation": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "SQL_Latin1_General_CP1_CI_AS",
+      "metadata": {
+        "description": "The SQL database collation"
+      }
+    },
+    "sqlDatabaseEdition": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "Standard",
+        "Premium"
+      ],
+      "metadata": {
+        "description": "The SQL server edition"
+      }
+    },
+    "sqldatabaseRequestedServiceObjectiveName": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "S0",
+        "S1",
+        "S2",
+        "S3",
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P11",
+        "P15"
+      ],
+      "metadata": {
+        "description": "Describes the performance level for Edition"
+      }
+    },
+    "sqlAdministratorLogin": {
+      "type": "string"
+    },
+    "sqlAdministratorPassword": {
+      "type": "securestring"
+    }
+  },
+  "variables": {
+    "apiVersion": "2015-04-01",
+    "storageAccountApiVersion": "2015-06-15",
+    "applicationInsightsApiVersion": "2014-04-01",
+    "storageAccountName": "[toLower(parameters('storageAccountName'))]",
+    "storageAccountType": "Standard_LRS",
+    "webAppName": "[concat(parameters('webAppName'), '-', resourceGroup().location)]",
+    "webAppNameMobile": "[concat(parameters('webAppName'), '-', resourceGroup().location)]",
+    "hostingPlanName": "[concat(parameters('webAppName'), '-', tolower(parameters('servicePlanSize')), '-plan')]",
+    "productionSlotName": "production",
+    "stagingSlotName": "staging",
+    "applicationInsightsName": "[concat(parameters('webAppName'), '-insights')]",
+    "storageAccountId": "[concat(resourceGroup().id,'/providers/Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
+    "siteProperties": {
+      "phpVersion": "5.5",
+      "netFrameworkVersion": "v4.0",
+      "use32BitWorkerProcess": false,
+      "webSocketsEnabled": true,
+      "alwaysOn": true,
+      "requestTracingEnabled": true,
+      "httpLoggingEnabled": true,
+      "logsDirectorySizeLimit": 40,
+      "detailedErrorLoggingEnabled": true,
+      "remoteDebuggingEnabled": false,
+      "remoteDebuggingVersion": "VS2013",
+      "defaultDocuments": [
+        "Default.htm",
+        "Default.html",
+        "Default.asp",
+        "index.htm",
+        "index.html",
+        "iisstart.htm",
+        "default.aspx",
+        "index.php",
+        "hostingstart.html"
+      ]
+    },
+    "apiVersion-sql": "2014-04-01-preview",
+    "sqlServerName": "[toLower(parameters('sqlServerName'))]",
+    "location": "[resourceGroup().location]",
+    "cdnApiVersion": "2015-06-01",
+    "profileName": "[concat(parameters('webAppName'), '-cdn')]",
+    "endpointName": "[concat(parameters('webAppName'), '-endpoint')]"
+  },
+  "resources": [
+    {
+      "apiVersion": "[variables('storageAccountApiVersion')]",
+      "name": "[variables('storageAccountName')]",
+      "location": "[resourceGroup().location]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "properties": {
+        "accountType": "[variables('storageAccountType')]"
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "name": "[variables('hostingPlanName')]",
+      "type": "Microsoft.Web/serverFarms",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "name": "[variables('hostingPlanName')]",
+        "sku": "[parameters('servicePlanSize')]",
+        "workerSize": "[parameters('workerSize')]",
+        "numberOfWorkers": "[parameters('numberOfWorkers')]"
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "name": "[parameters('webAppName')]",
+      "type": "Microsoft.Web/sites",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverFarms', variables('hostingPlanName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[variables('hostingPlanName')]"
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "name": "web",
+          "type": "config",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('webAppName'))]"
+          ],
+          "properties": "[variables('siteProperties')]"
+        },
+        {
+          "apiVersion": "[variables('apiVersion')]",
+          "name": "appsettings",
+          "type": "config",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('webAppName'))]"
+          ],
+          "properties": {
+            "clientUrl": "[concat('http://', reference(resourceId('Microsoft.Web/Sites', parameters('webAppName'))).hostNames[0])]"
+          }
+        },
+        {
+          "apiVersion": "[variables('apiVersion')]",
+          "name": "slotconfignames",
+          "type": "config",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('webAppName'))]"
+          ],
+          "properties": {
+            "appSettingNames": [
+              "clientUrl",
+              "PROJECT",
+              "Environment"
+            ],
+            "connectionStringNames": [
+              "MultiChannelToDoContext"
+            ]
+          }
+        },
+        {
+          "apiVersion": "[variables('apiVersion')]",
+          "name": "connectionstrings",
+          "type": "config",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('webAppName'))]"
+          ],
+          "properties": {
+            "DefaultSqlConnection": {
+              "value": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('sqlServerName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', parameters('sqlDatabaseName'), ';User Id=', parameters('sqlAdministratorLogin'), '@', reference(concat('Microsoft.Sql/servers/', variables('sqlServerName'))).fullyQualifiedDomainName, ';Password=', parameters('sqlAdministratorPassword'), ';')]",
+              "type": "SQLAzure"
+            }
+          }
+        },
+        {
+          "apiVersion": "[variables('apiVersion')]",
+          "name": "[variables('productionSlotName')]",
+          "type": "slots",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('webAppName'))]"
+          ],
+          "properties": { },
+          "resources": [
+            {
+              "apiVersion": "[variables('apiVersion')]",
+              "name": "appsettings",
+              "type": "config",
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/Sites/Slots', parameters('webAppName'), variables('productionSlotName'))]"
+              ],
+              "properties": {
+                "Environment": "Production",
+                "clientUrl": "[concat('http://', reference(resourceId('Microsoft.Web/Sites/Slots', parameters('webAppName'), variables('productionSlotName'))).hostNames[0])]"
+              }
+            },
+            {
+              "apiVersion": "[variables('apiVersion')]",
+              "name": "connectionstrings",
+              "type": "config",
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/Sites/Slots', parameters('webAppName'), variables('productionSlotName'))]"
+              ],
+              "properties": {
+                "MultiChannelToDoContext": {
+                  "value": "ProductionTestValue",
+                  "type": "SQLAzure"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "apiVersion": "[variables('apiVersion')]",
+          "name": "[variables('stagingSlotName')]",
+          "type": "slots",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('webAppName'))]"
+          ],
+          "properties": { },
+          "resources": [
+            {
+              "apiVersion": "[variables('apiVersion')]",
+              "name": "appsettings",
+              "type": "config",
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/Sites/Slots', parameters('webAppName'), variables('stagingSlotName'))]"
+              ],
+              "properties": {
+                "Environment": "Staging",
+                "clientUrl": "[concat('http://', reference(resourceId('Microsoft.Web/Sites/Slots', parameters('webAppName'), variables('stagingSlotName'))).hostNames[0])]"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "apiVersion": "2014-04-01",
+      "name": "[variables('applicationInsightsName')]",
+      "type": "Microsoft.Insights/components",
+      "location": "East US",
+      "dependsOn": [
+        "[concat('Microsoft.Web/sites/', parameters('webAppName'))]"
+      ],
+      "tags": {
+        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('webAppName'))]": "Resource"
+      },
+      "properties": {
+        "ApplicationId": "[parameters('webAppName')]",
+        "Request_Source": "IbizaWebAppExtensionCreate"
+      }
+    },
+    {
+      "name": "[variables('sqlServerName')]",
+      "type": "Microsoft.Sql/servers",
+      "apiVersion": "[variables('apiVersion-sql')]",
+      "location": "[variables('location')]",
+      "properties": {
+        "administratorLogin": "[parameters('sqlAdministratorLogin')]",
+        "administratorLoginPassword": "[parameters('sqlAdministratorPassword')]",
+        "version": "12.0"
+      },
+      "resources": [
+        {
+          "name": "[parameters('sqlDatabaseName')]",
+          "type": "databases",
+          "apiVersion": "[variables('apiVersion-sql')]",
+          "location": "[variables('location')]",
+          "dependsOn": [
+            "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]"
+          ],
+          "properties": {
+            "collation": "[parameters('sqlDatabaseCollation')]",
+            "maxSizeBytes": "1073741824",
+            "edition": "[parameters('sqlDatabaseEdition')]",
+            "requestedServiceObjectiveName": "[parameters('sqldatabaseRequestedServiceObjectiveName')]"
+          }
+        },
+        {
+          "type": "firewallrules",
+          "apiVersion": "[variables('apiVersion-sql')]",
+          "dependsOn": [
+            "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]"
+          ],
+          "location": "[variables('location')]",
+          "name": "AllowAllWindowsAzureIps",
+          "properties": {
+            "startIpAddress": "0.0.0.0",
+            "endIpAddress": "0.0.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[variables('profileName')]",
+      "type": "Microsoft.Cdn/profiles",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "[variables('cdnApiVersion')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/Sites', parameters('webAppName'))]"
+      ],
+      "properties": {
+        "sku": {
+          "name": "Standard"
+        }
+      }
+    },
+    {
+      "apiVersion": "[variables('cdnApiVersion')]",
+      "dependsOn": [
+        "[concat('Microsoft.Cdn/profiles/', variables('profileName'))]"
+      ],
+      "location": "[resourceGroup().location]",
+      "name": "[concat(variables('profileName'),'/',variables('endpointName'))]",
+      "type": "Microsoft.Cdn/profiles/endpoints",
+      "properties": {
+        "originHostHeader": "[concat(parameters('webAppName'), '.azurewebsites.net')]",
+        "isHttpAllowed": true,
+        "isHttpsAllowed": true,
+        "queryStringCachingBehavior": "IgnoreQueryString",
+        "contentTypesToCompress": [
+          "text/plain",
+          "text/html",
+          "text/css",
+          "application/x-javascript",
+          "text/javascript"
+        ],
+        "isCompressionEnabled": "True",
+        "origins": [
+          {
+            "name": "origin1",
+            "properties": {
+              "hostName": "[concat(parameters('webAppName'), '.azurewebsites.net')]"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "siteUri": {
+      "type": "string",
+      "value": "[concat('http://',reference(resourceId('Microsoft.Web/sites', parameters('webAppName'))).hostNames[0])]"
+    },
+    "keyString": {
+      "type": "string",
+      "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageAccountName'),';AccountKey=',concat(listKeys(variables('storageAccountId'),'2015-05-01-preview').key1))]"
+    },
+    "Key": {
+      "type": "string",
+      "value": "[listKeys(variables('storageAccountId'),'2015-05-01-preview').key1]"
+    }
+  }
+}

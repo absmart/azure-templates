@@ -1,0 +1,63 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "webAppName": {
+      "value": "febrpcfg01",
+      "metadata": {
+        "description": "Sets the domain name prefix for the web app. The concatenation of the domain name and the regionalized DNS zone make up the full A record of the web app."
+      }
+    },
+    "servicePlanSize": {
+      "value": "Standard",
+      "metadata": {
+        "description": "Set the hosting type for the web app service plan. Accepted values are Free, Basic, Standard, and Premium."
+      }
+    },
+    "workerSize": {
+      "value": 0,
+      "metadata": {
+        "description": "Set the performance level of the service plan. Accepts values 0, 1, 2 or 3."
+      }
+    },
+    "numberOfWorkers": {
+      "value": 1,
+      "metadata": {
+        "description": "The number of web instances for the service plan. This value can be from 1 to 10."
+      }
+    },
+    "storageAccountName": {
+      "value": "febrpcfg01st",
+      "metadata": {
+        "description": "Enter a globally-unique name for the storage account. Must be between 3 and 24 characters long."
+      }
+    },
+    "sqlServerName": {
+      "value": "febrpcfg01sql01"
+    },
+    "sqlDatabaseName": {
+      "value": "febrpcfg01db01"
+    },
+    "sqlDatabaseCollation": {
+      "value": "SQL_Latin1_General_CP1_CI_AS",
+      "metadata": {
+        "description": "The SQL database collation"
+      }
+    },
+    "sqlDatabaseEdition": {
+      "value": "Standard",
+      "metadata": {
+        "description": "The SQL server edition, make sure this is the same as the ServiceObjectiveName. Accepts Basic, Standard or Premium."
+      }
+    },
+    "sqldatabaseRequestedServiceObjectiveName": {
+      "value": "S0",
+      "metadata": {
+        "description": "Describes the performance level for Edition, make sure this is the same family as the DatabaseEdition. Accepts Basic, S0, S1, S2, S3, P1, P2, P3, P4, P11, P15."
+      }
+    },
+    "sqlAdministratorLogin": {
+      "value": "feazsqladmin"
+    }
+  }
+}

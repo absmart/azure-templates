@@ -19,7 +19,7 @@
     "virtualNetworkName": {
       "type": "string",
       "metadata": {
-        "description": "The name of the Virtual Network to add te VM to"
+        "description": "The name of the Virtual Network to add the VM to"
       },
       "defaultValue": "adVNET"
     },

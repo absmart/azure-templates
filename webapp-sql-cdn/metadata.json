@@ -1,0 +1,7 @@
+{
+  "itemDisplayName": "Use this template to setup or update an Azure Web App.",
+  "description": "This template deploys and configures an empty Azure Web App with app.settings, connection.settings, storage account for logging, traffic manager profile and SQL database.",
+  "summary": "Setup Azure Web App, SQL Database, and CDN",
+  "githubUsername": "abswaxing",
+  "dateUpdated": "2017-01-26"
+}
