@@ -194,7 +194,7 @@
             },
             "connectionName": {
                 "type": "string",
-                "defaultValue": "ncus-to-dupagecounty",
+                "defaultValue": "ncus-to-location",
                 "metadata": {
                     "description": "Arbitrary name for the new connection between Azure VNet and other network"
                 }
