@@ -32,12 +32,6 @@
         "description": "The number of web instances for the service plan. This value can be from 1 to 10."
       }
     },
-    "applicationInsightsName": {
-      "value": "ApplicationInsights",
-      "metadata": {
-        "description": "Enter a name used by the web app for Application Insights."
-      }
-    },
     "storageAccountName": {
       "value": "GEN-UNIQUE",
       "metadata": {
